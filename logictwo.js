@@ -20,7 +20,7 @@ var layers = {
 
 var map = L.map("map", {
 center: [37.09, -95.71],
-zoom: 12,
+zoom: 6,
 layers: [
     layers.MAJOR_QUAKES,
     layers.AVG_QUAKES,
@@ -41,6 +41,11 @@ L.control.layers(null,overlays).addTo(map);
 var info = L.control({
     position: "bottomright"
 });
+
+info.onAdd = function() {
+    var div = L.DomUtil.create("div", "legend");
+    return div;
+  };
 
 info.addTo(map);
 
@@ -66,10 +71,10 @@ var icons ={
 };
 
 d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson", function(infoRes) { 
-    var quakeTime = infoRes.features.time;
-    var magnitude = infoRes.features.mag;
-    var quakeTitle = infoRes.features.title;
-    var coordinates = infoRes.geometry;
+    var quakeInfo = infoRes.features;
+    var updatedAt = infoRes.metadata;
+    //var quakeTitle = infoRes.features.properties.title;
+    var coordinates = infoRes.features.geometry;
 
     var earthquakeCount ={
         MAJOR_QUAKES: 0,
@@ -79,13 +84,13 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojs
 
     var earthquakeStatusCode;
 
-    for (var i = 0; i < magnitude.length; i++) {
-        var quake = Object.assign({}, quakeTitle[i], magnitude[i], quakeTime[i]);
+    for (var i = 0; i < quakeInfo.length; i++) {
+        var quake = Object.assign({}, quakeInfo[i], coordinates[i]);
 
-        if(quake.mag >= 6.00) {
+        if(!properties.mag >= 6.00) {
             earthquakeStatusCode = "MAJOR_QUAKES";
         }
-        else if (quake.mag < 6.00 && quake.mag >= 4.00) {
+        else if (!properties.mag < 6.00 && !properties.mag >= 4.00) {
             earthquakeStatusCode = "AVG_QUAKES";
         }
         else {
@@ -94,18 +99,18 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojs
         
         earthquakeCount[earthquakeStatusCode]++;
 
-        var newMarker = L.marker([geometry.coordinates[1], geometry.coordinates[0]], {
+        var newMarker = L.marker([coordinates.coordinates[1], coordinates.coordinates[0]], {
             icon: icons[earthquakeStatusCode]
         });
 
         newMarker.addTo(layers[earthquakeStatusCode]);
 
-        newMarker.bindPopup(features.title + "<br> Magnitude:" + features.mag + "<br> Type:" + features.type);
+        newMarker.bindPopup(properties.title + "<br> Magnitude:" + properties.mag + "<br> Type:" + properties.type);
     }
         updateLegend(quakeTime, earthquakeCount);
 });
 
-function updateLegend(quakeTime, earthquakeCount) {
+function updateLegend(updatedAt, earthquakeCount) {
     document.querySelector(".legend").innerHTML = [
         "<p>Updated: " + MediaStreamErrorEvent.unix(time).format("h:mm:ss A") + "</p>", 
         "<p> class ='major-quakes'> Major Earthquakes: " + earthquakeCount.MAJOR_QUAKES + "</p>",

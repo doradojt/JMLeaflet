@@ -23,42 +23,35 @@ d3.json(queryUrl, function(response) {
   // myMap.addLayer(markers);
 });
 
-d3.json(queryUrlTwo, function(response) {
-  createFeaturesTwo(response.features);
-
-});
-
-
-
 function createFeatures(earthquakeData) {
     
   function onEachFeature(feature, layer) {
-       layer.bindPopup("<h3>" + feature.properties.place + "</h3><hr><p>" + new Date(feature.properties.time)+ "</p>");
+       layer.bindPopup("<h3>" + feature.properties.place + "</h3><hr><p>Date & Time:" +""+ new Date(feature.properties.time)+ "</p>" + "<p> Type:" + feature.properties.type + "</p>"  + "<p> Magnitude:" + feature.properties.mag + "<p>");
   }
 
    var earthquakes = L.geoJSON(earthquakeData, {
        onEachFeature: onEachFeature
+
    });
+
+  //  function createCustomIcon (feature, latlng) {
+  //   let myIcon = L.icon({
+  //     iconUrl: 'my-icon.png',
+  //     shadowUrl: 'my-icon.png',
+  //     iconSize:     [25, 25], // width and height of the image in pixels
+  //     shadowSize:   [35, 20], // width, height of optional shadow image
+  //     iconAnchor:   [12, 12], // point of the icon which will correspond to marker's location
+  //     shadowAnchor: [12, 6],  // anchor point of the shadow. should be offset
+  //     popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
+  //   })
+  //   return L.marker(latlng, { icon: myIcon })
+  // }
 
    createMap(earthquakes);
 }
 
-// function markerSize(magnitude) {
-//   return magnitude / .5;
-// }
 
-function createFeaturesTwo(earthquakeDataTwo) {
-  function onEachFeature(feature, layer) {
-    layer.bindPopup("<h3>" + feature.properties.place + "</h3><hr><p>" + new Date(feature.properties.time)+ "</p>");
-  }
-  var earthquakestwo = L.geoJSON(earthquakeDataTwo, {
-    onEachFeature: onEachFeature
-});
-
-createMap(earthquakestwo);
-}
-
-function createMap(earthquakes, earthquakestwo) {
+function createMap(earthquakes) {
 
   // Create the tile layer that will be the background of our map
   var streetmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
@@ -83,13 +76,12 @@ function createMap(earthquakes, earthquakestwo) {
   // Create an overlayMaps object to hold the bikeStations layer
   var overlayMaps = {
     "Earthquakes": earthquakes,
-    "Major Earthquakes": earthquakestwo
   };
 
   // Create the map object with options
   var myMap = L.map("map", {
     center: [37.09, -95.71],
-    zoom: 10,
+    zoom: 5,
     layers: [streetmap, earthquakes]
   });
 
