@@ -61,7 +61,7 @@ function createFeatures(earthquakeData) {
   function onEachFeature(feature, layer) {
        layer.bindPopup("<h3>" + feature.properties.place + "</h3><hr><p>Date & Time:" +""+ new Date(feature.properties.time)+ "</p>" + "<p> Type:" + feature.properties.type + "</p>"  + "<p> Magnitude:" + feature.properties.mag + "<p>");
   }
-
+      
   //  var earthquakes = L.geoJSON(earthquakeData, {
   //      onEachFeature: onEachFeature,
   //      pointToLayer: function(feature, latlng) {
@@ -82,7 +82,23 @@ function createFeatures(earthquakeData) {
       var earthquakes = L.geoJson(earthquakeData, {
         onEachFeature: onEachFeature,
         pointToLayer: function(feature, latlng) {
-          
+          // tried to write code to make the circle radius....?
+          // return L.circleMarker(latlng, {
+          //   fillColor:"#708598",
+          //   color:"#537898",
+          //   weight:1,
+          //   fillOpacity:.6,  
+          // }).on({
+          //       mouseover: function(e) {
+          //           this.openPopup();
+          //           this.setStyle({color:"yellow"});
+          //       },
+          //       mouseout: function(e) {
+          //           this.closePopup();
+          //           this.setStyle({color:"#537898"});
+          //       } 
+          // });
+        //code below was removed temporarily to try some sizing feature
           if (feature.properties.mag < 3.5){
 
             var marker = L.marker(latlng,{icon:greenQuakeIcon});
@@ -104,11 +120,23 @@ function createFeatures(earthquakeData) {
       }
         
     })
-
+    //updateFeatures(feature.properties.mag[0]);
 
    createMap(earthquakes);
 }
+// function updateFeatures(mag) {
+//   earthquakes.eachLayer(function(layer) {
+//     var radius = calcFeatureRadius(properties[mag]);
 
+//     layer.setRadius(radius);
+//   })
+// }
+
+// function calcFeatureRadius(attributeValue) {
+//   var scaleFactor = 5;
+//   var area = attributeValue * scaleFactor;
+//   return Math.sqrt(area/Math.PI)*2;
+// }
 
 function createMap(earthquakes) {
 
