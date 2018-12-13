@@ -1,4 +1,4 @@
-var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson";
+var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson";
 var queryUrlTwo = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson";
 d3.json(queryUrl, function(response) {
   
@@ -24,28 +24,87 @@ d3.json(queryUrl, function(response) {
 });
 
 function createFeatures(earthquakeData) {
+
+  var redQuakeIcon = L.icon({
+    iconUrl: 'Bullseye1.png',
+    //shadowUrl: dont have one, how to scale the size?
+    iconSize: [32, 32],
+    //shawdowSize: [36,36],
+    iconAnchor: [18,18],
+    //shawdowAnchor: [18,18],
+    popupAnchor: [0,-6]
+  });
+
+    // var blueQuakeIcon = new redQuakeIcon({iconUrl: 'bluebullseye.png'});
+    // var greenQuakeIcon = new redQuakeIcon({iconUrl: 'greenbullseye.png'});
+
+  var blueQuakeIcon = L.icon({
+    iconUrl: 'yellowbull.png',
+    //shadowUrl: dont have one,
+    iconSize: [24, 24],
+    //shawdowSize: [36,36],
+    iconAnchor: [18,18],
+    //shawdowAnchor: [18,18],
+    popupAnchor: [0,-6]
+  });
+
+  var greenQuakeIcon = L.icon({
+    iconUrl: 'greenbullseye.png',
+    //shadowUrl: dont have one,
+    iconSize: [18, 18],
+    //shawdowSize: [36,36],
+    iconAnchor: [18,18],
+    //shawdowAnchor: [18,18],
+    popupAnchor: [0,-6]
+  });
     
   function onEachFeature(feature, layer) {
        layer.bindPopup("<h3>" + feature.properties.place + "</h3><hr><p>Date & Time:" +""+ new Date(feature.properties.time)+ "</p>" + "<p> Type:" + feature.properties.type + "</p>"  + "<p> Magnitude:" + feature.properties.mag + "<p>");
   }
 
-   var earthquakes = L.geoJSON(earthquakeData, {
-       onEachFeature: onEachFeature
+  //  var earthquakes = L.geoJSON(earthquakeData, {
+  //      onEachFeature: onEachFeature,
+  //      pointToLayer: function(feature, latlng) {
+  //        var marker = L.marker(latlng, {icon: blueQuakeIcon});
+  //        return marker;
+  //      }
 
-   });
+  //  });
+      //tried to set up a counter for the legend, got confused
+      // var quakeCount = {
+      //   majorQuakes = 0,
+      //   avgQuakes = 0,
+      //   minorQuakes = 0
+      // };
 
-  //  function createCustomIcon (feature, latlng) {
-  //   let myIcon = L.icon({
-  //     iconUrl: 'my-icon.png',
-  //     shadowUrl: 'my-icon.png',
-  //     iconSize:     [25, 25], // width and height of the image in pixels
-  //     shadowSize:   [35, 20], // width, height of optional shadow image
-  //     iconAnchor:   [12, 12], // point of the icon which will correspond to marker's location
-  //     shadowAnchor: [12, 6],  // anchor point of the shadow. should be offset
-  //     popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
-  //   })
-  //   return L.marker(latlng, { icon: myIcon })
-  // }
+      // var quakeCountCode;
+
+      var earthquakes = L.geoJson(earthquakeData, {
+        onEachFeature: onEachFeature,
+        pointToLayer: function(feature, latlng) {
+          
+          if (feature.properties.mag < 3.5){
+
+            var marker = L.marker(latlng,{icon:greenQuakeIcon});
+            //quakeCount = "minorQuakes";
+
+          } else if (feature.properties.mag >= 3.5 && feature.properties.mag < 5.0) {
+          
+            var marker = L.marker(latlng,{icon:blueQuakeIcon});
+            //quakeCount = "avgQuakes";
+          
+          } else {
+            
+            var marker = L.marker(latlng,{icon:redQuakeIcon});
+            //quakeCount = "majorQuakes";
+
+          };
+        return marker;
+        //quakeCount[quakeCountCode]++;
+      }
+        
+    })
+
 
    createMap(earthquakes);
 }
@@ -54,9 +113,10 @@ function createFeatures(earthquakeData) {
 function createMap(earthquakes) {
 
   // Create the tile layer that will be the background of our map
-  var streetmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
+  var lightmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
     attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
     maxZoom: 18,
+    minZoom:3,
     id: "mapbox.streets",
     accessToken: API_KEY
   });
@@ -64,12 +124,13 @@ function createMap(earthquakes) {
   var darkmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
     attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
     maxZoom: 18,
+    minZoom: 3,
     id: "mapbox.dark",
     accessToken: API_KEY
   });
   // Create a baseMaps object to hold the lightmap layer
   var baseMaps = {
-    "Street Map": streetmap,
+    "Light Map": lightmap,
     "Dark Map": darkmap
   };
 
@@ -82,13 +143,33 @@ function createMap(earthquakes) {
   var myMap = L.map("map", {
     center: [37.09, -95.71],
     zoom: 5,
-    layers: [streetmap, earthquakes]
+    layers: [darkmap, earthquakes]
   });
 
+  var legend = L.control({position: 'bottomright'});
+
+  legend.onAdd = function(myMap) {
+
+    var div = L.DomUtil.create('div', 'legend');
+    div.innerHTML += 'EarthQuakes';
+    div.innerHTML += 'by severity';
+    div.innerHTML += "Minor Earthquakes";
+    div.innerHTML += "Avg. Earthquakes";
+    div.innerHTML += "Major Earthquakes";
+
+    return div;
+  };
+
+  legend.addTo(myMap);
+
+
+
+
+
+
 // Create a layer control, pass in the baseMaps and overlayMaps. Add the layer control to the map
-  L.control.layers(baseMaps, overlayMaps, {
-    collapsed: false
-  }).addTo(myMap);
+  L.control.layers(baseMaps, overlayMaps, {collapsed: false}).addTo(myMap);
+  L.control.scale({position: "bottomleft"}).addTo(myMap);
 }
 
 // function createMarkers(response) {

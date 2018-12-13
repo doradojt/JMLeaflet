@@ -51,28 +51,28 @@ info.addTo(map);
 
 var icons ={
     MAJOR_QUAKES: L.ExtraMarkers.icon({
-        icon: "beer",
-        iconColor: "red",
-        markerColor: "white",
-        shape:"circle"
+        icon: "ion-settings",
+        iconColor: "white",
+        markerColor: "yellow",
+        shape: "star"
     }),
     AVG_QUAKES: L.ExtraMarkers.icon({ 
-        icon: "beer",
+        iconUrl: 'yellowbull.png',
         iconColor: "blue",
         markerColor: "orange",
         shape: "penta"
     }),
     MINOR_QUAKES: L.ExtraMarkers.icon({
-        icon: "beer",
+        icon: "ion-settings",
         iconColor: "green",
-        markerColor: "white",
+        markerColor: "yellow",
         shape: "star"
     })
 };
 
 d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson", function(infoRes) { 
     var quakeInfo = infoRes.features;
-    var updatedAt = infoRes.metadata;
+    var updatedAt = infoRes.metadata.generated;
     //var quakeTitle = infoRes.features.properties.title;
     var coordinates = infoRes.features.geometry;
 
@@ -83,18 +83,20 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojs
     };
 
     var earthquakeStatusCode;
+    //problem with this forloop
+    
 
     for (var i = 0; i < quakeInfo.length; i++) {
         var quake = Object.assign({}, quakeInfo[i], coordinates[i]);
 
-        if(!properties.mag >= 6.00) {
-            earthquakeStatusCode = "MAJOR_QUAKES";
+        if(quake.feature.properties.mag < 3.5) {
+            earthquakeStatusCode = "MINOR_QUAKES";
         }
-        else if (!properties.mag < 6.00 && !properties.mag >= 4.00) {
+        else if (quake.feature.properties.mag < 3.5 < 6.00 && quake.feature.properties.mag < 3.5 >= 4.00) {
             earthquakeStatusCode = "AVG_QUAKES";
         }
         else {
-            earthquakeStatusCode = "MINOR_QUAKES";
+            earthquakeStatusCode = "MAJOR_QUAKES";
         }
         
         earthquakeCount[earthquakeStatusCode]++;
@@ -107,10 +109,10 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojs
 
         newMarker.bindPopup(properties.title + "<br> Magnitude:" + properties.mag + "<br> Type:" + properties.type);
     }
-        updateLegend(quakeTime, earthquakeCount);
+        updateLegend(updatedAt, earthquakeCount);
 });
 
-function updateLegend(updatedAt, earthquakeCount) {
+function updateLegend(time, earthquakeCount) {
     document.querySelector(".legend").innerHTML = [
         "<p>Updated: " + MediaStreamErrorEvent.unix(time).format("h:mm:ss A") + "</p>", 
         "<p> class ='major-quakes'> Major Earthquakes: " + earthquakeCount.MAJOR_QUAKES + "</p>",
