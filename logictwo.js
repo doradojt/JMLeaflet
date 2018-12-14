@@ -6,23 +6,24 @@ var darkmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?
     accessToken: API_KEY
 });
 
-//   var darkmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
-//     attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
-//     maxZoom: 18,
-//     id: "mapbox.dark",
-//     accessToken: API_KEY
-//   });
+var lightmap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token={accessToken}", {
+  attribution: "Map data &copy; <a href=\"http://openstreetmap.org\">OpenStreetMap</a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"http://mapbox.com\">Mapbox</a>",
+  maxZoom: 18,
+  minZoom: 3,
+  id: "mapbox.light",
+  accessToken: API_KEY
+});
 
 var layers = {
     MAJOR_QUAKES: new L.LayerGroup(),
     AVG_QUAKES: new L.LayerGroup(),
-    MINOR_QUAKES: new L.LayerGroup()
+    COMMON_QUAKES: new L.LayerGroup()
 };
 
 var overlays = {
 "Major Earthquakes": layers.MAJOR_QUAKES,
 "Average Earthquakes": layers.AVG_QUAKES,
-"Minor Earthquakes": layers.MINOR_QUAKES
+"Common Earthquakes": layers.COMMON_QUAKES
 };
 
 
@@ -40,7 +41,7 @@ var icons ={
         //markerColor: "orange",
         //shape: "penta"
     }),
-    MINOR_QUAKES: L.ExtraMarkers.icon({
+    COMMON_QUAKES: L.ExtraMarkers.icon({
         iconUrl: "greenbullseye.png"
         //iconColor: "green",
         //markerColor: "yellow",
@@ -49,27 +50,40 @@ var icons ={
 };
 function updateLegend(time, earthquakeCount) {
     document.querySelector(".legend").innerHTML = [ 
-        "<p> <class ='major-quakes'> Major Earthquakes: " + earthquakeCount.MAJOR_QUAKES + "</p>",
-        "<p> <class ='average-quakes'> Average Earthquakes: " + earthquakeCount.AVG_QUAKES + "</p>",
-        "<p> <class ='minor-quakes' > Minor Earthquakes: " + earthquakeCount.MINOR_QUAKES + "</p>"].join("");
+        "<hr> <id='legend-title'> LEGEND </hr>",
+        "<p> <class ='major-quakes' id='major-quakes'> Earthquakes over 5.0: " + earthquakeCount.MAJOR_QUAKES + "</p>",
+        "<p> <class ='avg-quakes' id ='avg-quakes'>  Earthquakes between 2.5 and 5.0: " + earthquakeCount.AVG_QUAKES + "</p>",
+        "<p> <class ='common-quakes' id = 'common-quakes'>  Earthquakes under 2.5: " + earthquakeCount.COMMON_QUAKES + "</p>"].join("");
     }
+
+    function getColor(d) {
+        return d > 1.0 ? '#800026' :
+               d > 2.0  ? '#BD0026' :
+               d > 3.0  ? '#E31A1C' :
+               d > 4.0  ? '#FC4E2A' :
+               d > 5.0   ? '#FD8D3C' :
+               d > 6.0   ? '#FEB24C' :
+               d > 7.0   ? '#FED976' :
+                          '#FFEDA0';
+    }
+
 d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson", function(infoRes) { 
     var quakeInfo = infoRes.features;
     var updatedAt = infoRes.metadata.generated;
     //console.log(quakeInfo)
-    //var quakeTitle = infoRes.features.properties.title;
+    
     var coordinateinfo = infoRes.features;
 
-    //var magscale = quakeInfo[0].properties.mag;
+    
 
     var earthquakeCount ={
         MAJOR_QUAKES: 0,
         AVG_QUAKES: 0,
-        MINOR_QUAKES: 0
+        COMMON_QUAKES: 0
     };
 
     var earthquakeStatusCode;
-    //problem with this forloop
+    
     
 
     for (var i = 0; i < quakeInfo.length; i++) {
@@ -77,20 +91,21 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojs
         coordinates = coordinateinfo[i].geometry
 
         var markerOptions = {
-            radius: quakeInfo[i].properties.mag*5,
-            fillColor:"#708598",
-            color:"#537898",
+            radius: quakeInfo[i].properties.mag*6,
+            fillColor: getColor(quakeInfo[i].properties.mag),
+            color: '#636363',
             weight:1,
             fillOpacity:.6, 
     
         }
-        //var quake = Object.assign({}, quakeInfo[i], coordinates[i]);
+        //Originally was going off a traditional Earthquake scale but I wanted to highlight the multiple layers
 
-        if(quake.properties.mag < 3.5) {
-            earthquakeStatusCode = "MINOR_QUAKES";
+        if(quake.properties.mag < 2.5) {
+            earthquakeStatusCode = "COMMON_QUAKES";
+            
             
         }
-        else if (quake.properties.mag < 3.5 < 6.00 && quake.properties.mag < 3.5 >= 4.00) {
+        else if (quake.properties.mag < 5.0 && quake.properties.mag  >= 2.5) {
             earthquakeStatusCode = "AVG_QUAKES";
 
         }
@@ -117,12 +132,19 @@ var map = L.map("map", {
     layers: [
         layers.MAJOR_QUAKES,
         layers.AVG_QUAKES,
-        layers.MINOR_QUAKES
+        layers.COMMON_QUAKES,
+        darkmap
     ]
     });
 
-darkmap.addTo(map);
-L.control.layers(null,overlays).addTo(map);
+
+var baseMaps = {
+    "Light Map": lightmap,
+    "Dark Map": darkmap
+  };
+
+L.control.layers(baseMaps,overlays,{collapsed: false}).addTo(map);
+L.control.scale({position: "bottomleft"}).addTo(map);
 
 var info = L.control({
     position: "bottomright"
