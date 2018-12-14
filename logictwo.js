@@ -50,21 +50,21 @@ var icons ={
 };
 function updateLegend(time, earthquakeCount) {
     document.querySelector(".legend").innerHTML = [ 
-        "<hr> <id='legend-title'> LEGEND </hr>",
+        "<h1> <class= 'title' id='title'> LEGEND </h1>",
         "<p> <class ='major-quakes' id='major-quakes'> Earthquakes over 5.0: " + earthquakeCount.MAJOR_QUAKES + "</p>",
         "<p> <class ='avg-quakes' id ='avg-quakes'>  Earthquakes between 2.5 and 5.0: " + earthquakeCount.AVG_QUAKES + "</p>",
         "<p> <class ='common-quakes' id = 'common-quakes'>  Earthquakes under 2.5: " + earthquakeCount.COMMON_QUAKES + "</p>"].join("");
     }
-
+    //function that gives color scale
     function getColor(d) {
-        return d > 1.0 ? '#800026' :
-               d > 2.0  ? '#BD0026' :
-               d > 3.0  ? '#E31A1C' :
-               d > 4.0  ? '#FC4E2A' :
-               d > 5.0   ? '#FD8D3C' :
-               d > 6.0   ? '#FEB24C' :
-               d > 7.0   ? '#FED976' :
-                          '#FFEDA0';
+        return d < 1.0  ? '#800026' :
+               d < 1.5 && d >=1.0 ? '#BD0026' :
+               d < 2.0 && d >=1.5  ? '#E31A1C' :
+               d < 2.5 && d >=2.0 ? '#FC4E2A' :
+               d < 3.5 && d >=2.5 ? '#FD8D3C' :
+               d < 5.0 && d >=3.5  ? '#FEB24C' :
+               d < 7.0 && d >=5.0  ? '#FED976' :
+                          'FFEEDA0';
     }
 
 d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson", function(infoRes) { 
@@ -103,14 +103,14 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojs
         if(quake.properties.mag < 2.5) {
             earthquakeStatusCode = "COMMON_QUAKES";
             
-            
         }
         else if (quake.properties.mag < 5.0 && quake.properties.mag  >= 2.5) {
             earthquakeStatusCode = "AVG_QUAKES";
-
+            
         }
         else {
             earthquakeStatusCode = "MAJOR_QUAKES";
+           
         }
         
         earthquakeCount[earthquakeStatusCode]++;
@@ -121,7 +121,7 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojs
 
         newMarker.addTo(layers[earthquakeStatusCode]);
 
-        newMarker.bindPopup(quake.properties.title + "<br> Magnitude:" + quake.properties.mag + "<br> Type:" + quake.properties.type);
+        newMarker.bindPopup("Location: " + quake.properties.title + "<br> Magnitude: " + quake.properties.mag + "<br> Type: " + quake.properties.type);
     }
         updateLegend(updatedAt, earthquakeCount);
 });

@@ -10,41 +10,46 @@ body,
 html {
   height: 100%;
 }
+
+.leaflet-popup-content {
+	font-family: 'Open Sans', Helvetica, sans-serif;
+	font-weight: bold;
+	font-style: italic;
+	font-size: 14px;
+}
 .legend {
 	line-height: 18px;
 	color: #333333;
 	font-family: 'Open Sans', Helvetica, sans-serif;
 	padding: 6px 8px;
 	background: white;
-	background: rgba(255,255,255,0.8);
+	background: rgba(168, 167, 167, 0.8);
 	box-shadow: 0 0 15px rgba(0,0,0,0.2);
 	border-radius: 5px;
 }
 
-#legend-title {
-	position: absolute;
+#title {
+	text-align: center;
 	font-size: 24px;
 	font-weight: bold;
-	line-height: 18px;
-
-	
+	line-height: 6px;
 }
 
 #avg-quakes {
-	font-size: 18px;
+	font-size: 16px;
 	font-weight: bold;
-	line-height: 18px;
+	line-height: 4px;
 	
 }
 #common-quakes {
-	font-size: 18px;
+	font-size: 16px;
 	font-weight: bold;
-	line-height: 18px;
+	line-height: 4px;
 }
 
 #major-quakes {
-	font-size: 18px;
+	font-size: 16px;
 	font-weight: bold;
-	line-height: 18px;
+	line-height: 4px;
 	
 }
